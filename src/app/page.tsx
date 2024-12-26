@@ -1,101 +1,210 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useState } from "react";
+
+import Link from "next/link";
+import { useDispatch } from 'react-redux';
+import { addToCart } from "./store/cartSlice";
+import { addToFavoris } from "./store/favorisSlice";
+
+
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [publications, setPublications] = useState<Publication[]>([]); 
+  const dispatch = useDispatch()
+    const [id, setId] = useState("")
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+
+    if (storedUser) {
+      const userData = JSON.parse(storedUser);
+
+      console.log("id de l'utilisateur :", userData.user._id);
+      setId(userData.user._id)
+
+    } else {
+      console.log("Aucun utilisateur trouvé dans le localStorage");
+    }
+  })
+  interface Publication {
+    _id:number ,
+    titre: string;
+    description: string;
+    date: string;
+    image: string[];
+    prix: number;
+    promotion: number;
+    entreprise:string;
+
+  }
+
+
+  
+  const fetchPublications = async (): Promise<void> => {
+    try {
+      const response = await fetch("http://localhost:3000/publication");
+      if (!response.ok) {
+        throw new Error(`Erreur: ${response.status} ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log("data",data) 
+      setPublications(data.publicationData); 
+    } catch (error) {
+      console.error("Erreur lors de la récupération des publications:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPublications();
+  }, []);
+  const AddCart = (pub: Publication )=> {
+    try {
+      const cartData ={
+        publicationId: pub._id, 
+        titre:pub.titre,
+        prix: pub.prix,
+        quantite :1 ,
+        entrepriseId: pub.entreprise,
+        clientId:id ,
+
+      }
+      dispatch(addToCart(cartData));
+
+    } catch (err) {
+        console.error("Erreur lors de l'add to cart :", err);
+      
+    }  
+}
+  const AddFavoris = (pub: Publication) => {
+    try {
+      const cartData = {
+        publicationId: pub._id,
+        titre:pub.titre,
+        prix: pub.prix,
+        entrepriseId: pub.entreprise,
+        clientId: id,
+
+      }
+      dispatch(addToFavoris(cartData));
+
+    } catch (err) {
+      console.error("Erreur lors de l'add to favoris :", err);
+
+    }
+  }
+
+  return (
+<div>
+  {/* Topbar Start */}
+  {/* Topbar End */}
+  {/* Navbar Start */}
+  {/* Navbar End */}
+  {/* Featured Start */}
+  <div className="container-fluid pt-5">
+    <div className="row px-xl-5 pb-3">
+      <div className="col-lg-3 col-md-6 col-sm-12 pb-1">
+        <div className="d-flex align-items-center border mb-4" style={{padding: 30}}>
+          <h1 className="fa fa-check text-primary m-0 mr-3" />
+          <h5 className="font-weight-semi-bold m-0">Quality Product</h5>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+      <div className="col-lg-3 col-md-6 col-sm-12 pb-1">
+        <div className="d-flex align-items-center border mb-4" style={{padding: 30}}>
+          <h1 className="fa fa-shipping-fast text-primary m-0 mr-2" />
+          <h5 className="font-weight-semi-bold m-0">Free Shipping</h5>
+        </div>
+      </div>
+      <div className="col-lg-3 col-md-6 col-sm-12 pb-1">
+        <div className="d-flex align-items-center border mb-4" style={{padding: 30}}>
+          <h1 className="fas fa-exchange-alt text-primary m-0 mr-3" />
+          <h5 className="font-weight-semi-bold m-0">14-Day Return</h5>
+        </div>
+      </div>
+      <div className="col-lg-3 col-md-6 col-sm-12 pb-1">
+        <div className="d-flex align-items-center border mb-4" style={{padding: 30}}>
+          <h1 className="fa fa-phone-volume text-primary m-0 mr-3" />
+          <h5 className="font-weight-semi-bold m-0">24/7 Support</h5>
+        </div>
+      </div>
     </div>
+  </div>
+  {/* Featured End */}
+
+
+  {/* Products Start */}
+  <div className="container-fluid pt-5">
+    <div className="text-center mb-4">
+      <h2 className="section-title px-5"><span className="px-2">Trandy Products</span></h2>
+    </div>
+    <div className="row px-xl-5 pb-3">
+          {publications.map((publication) => (
+            <div key={publication._id} className="col-lg-3 col-md-6 col-sm-12 pb-1">
+              <div className="card product-item border-0 mb-4">
+                <div className="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                  <img className="img-fluid w-100" src={`http://localhost:3000/file/${publication.image[0]}` } alt="" />
+                </div>
+                <div className="card-body border-left border-right text-center p-0 pt-4 pb-3">
+                  <h6 className="text-truncate mb-3">{publication.titre}</h6>
+                  <div className="d-flex justify-content-center">
+                    <h6>${publication.prix}</h6><h6 className="text-muted ml-2"><del>${publication.promotion}</del></h6>
+                  </div>
+                </div>
+                <div className="card-footer d-flex justify-content-between bg-light border">
+                  <Link href={`/publication/${publication._id}`} className="btn btn-sm text-dark p-0"><i className="fas fa-eye text-primary mr-1" />View Detail</Link>
+                  <button onClick={() => AddCart(publication)}  className="btn btn-sm text-dark p-0"><i className="fas fa-shopping-cart text-primary mr-1" />Add To Cart</button>
+                  <button onClick={() => AddFavoris(publication)} className="btn btn-sm text-dark p-0"><i className="fas fa-heart text-primary mr-1" />Add To Favoris</button>
+                </div>
+              </div>
+            </div>
+          ))}
+
+
+
+    </div>
+  </div>
+  {/* Products End */}
+
+
+  {/* Vendor Start */}
+  <div className="container-fluid py-5">
+    <div className="row px-xl-5">
+      <div className="col">
+        <div className="owl-carousel vendor-carousel">
+          <div className="vendor-item border p-4">
+            <img src="img/vendor-1.jpg" alt="" />
+          </div>
+          <div className="vendor-item border p-4">
+            <img src="img/vendor-2.jpg" alt="" />
+          </div>
+          <div className="vendor-item border p-4">
+            <img src="img/vendor-3.jpg" alt="" />
+          </div>
+          <div className="vendor-item border p-4">
+            <img src="img/vendor-4.jpg" alt="" />
+          </div>
+          <div className="vendor-item border p-4">
+            <img src="img/vendor-5.jpg" alt="" />
+          </div>
+          <div className="vendor-item border p-4">
+            <img src="img/vendor-6.jpg" alt="" />
+          </div>
+          <div className="vendor-item border p-4">
+            <img src="img/vendor-7.jpg" alt="" />
+          </div>
+          <div className="vendor-item border p-4">
+            <img src="img/vendor-8.jpg" alt="" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {/* Vendor End */}
+  {/* Footer Start */}
+  {/* Footer End */}
+  {/* Back to Top */}
+  <a href="#" className="btn btn-primary back-to-top"><i className="fa fa-angle-double-up" /></a>
+</div>
+
   );
 }
